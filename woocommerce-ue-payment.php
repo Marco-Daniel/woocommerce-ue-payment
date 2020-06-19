@@ -68,16 +68,6 @@ function ue_wc_gateway_init_class() {
                 $GLOBALS['GeneratedAccessclientCode'] = $token;
             }
             
-            // make settings global
-            // $GLOBALS['ue_config'] = [
-            //     'root'          => $this->root_url,
-            //     'api_root'      => "{$this->root_url}/api",
-            //     'accessClient'  => $this->accessclient,
-            //     'user'          => $this->username,
-            //     'password'      => $this->password,
-            // ];
-            // $GLOBALS['payment_title'] = $this->title;
-
             // This action hook saves the settings
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
         }
