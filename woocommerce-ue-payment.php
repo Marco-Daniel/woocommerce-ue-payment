@@ -62,7 +62,7 @@ function ue_wc_gateway_init_class() {
             // if accessclient is retrieved.
             if( !empty($_POST['accessClientCode'])) {
                 $accesscode = $_POST['accessClientCode'];
-                $token = generateAccessclientToken("{$this->root_url}/api", $accesscode, $this->username, $this->password);
+                $token = generate_accessclient_token("{$this->root_url}/api", $accesscode, $this->username, $this->password);
                 $this->update_option('accessclient', $token);
                 $this->update_option('use_accessclient', 'yes');
                 $GLOBALS['GeneratedAccessclientCode'] = $token;
@@ -240,7 +240,7 @@ function ue_wc_gateway_init_class() {
 }
 
 // helper functions
-function generateAccessclientToken( $base_url, $accesscode, $username, $password ) {
+function generate_accessclient_token( $base_url, $accesscode, $username, $password ) {
 
     $url = "{$base_url}/clients/activate?code={$accesscode}";
 
@@ -251,17 +251,17 @@ function generateAccessclientToken( $base_url, $accesscode, $username, $password
     
     $response = wp_remote_request( $url, array(
         'method'      => 'POST',
-        'timeout'     => 45,
-        'headers'     => $headers,
-        'sslverify'   => false,
-        'body'        => array(),
         'httpversion' => '1.0',
-        'blocking'    => true,
+        'timeout'     => 45,
         'redirection' => 15,
+        'sslverify'   => false,
+        'blocking'    => true,
+        'headers'     => $headers,
+        'body'        => array(),
         )
     );
 
-    if ( is_wp_error( $response ) ) {
+    if ( is_wp_error($response) ) {
         $error_message = $response->get_error_message();
         WC_Admin_Settings::add_error("Er ging iets mis: $error_message");
     } else {
@@ -273,32 +273,22 @@ function generateAccessclientToken( $base_url, $accesscode, $username, $password
     }
 }
 
-function includeHeaders($req) {
-    $headers = array('Content-Type: application/json');
+// function add_headers($req) {
+//     $headers = array('Content-Type: application/json');
 
-    if (!empty($config['accessClient'])) {
-        array_push(
-            $headers, 
-            "Access-Client-Token: {$ue_config['accessClient']}"
-        );
-    } else {
-        curl_setopt($req, CURLOPT_USERPWD, "{$ue_config['user']}: {$ue_config['password']}");
-    }
-
-    curl_setopt($req, CURLOPT_HTTPHEADER, $headers);
-}
-
-// function validateResponse($req, $res) {
-//     if ($res === false) {
-//         $info = curl_getinfo($req);
-//         curl_close($req);
-//         echo 'Er is een foutmelding opgetreden: ';
-//         echo '<pre>' . print_r($info) . '</pre>';
-//         die();
+//     if (!empty($config['accessClient'])) {
+//         array_push(
+//             $headers, 
+//             "Access-Client-Token: {$ue_config['accessClient']}"
+//         );
+//     } else {
+//         curl_setopt($req, CURLOPT_USERPWD, "{$ue_config['user']}: {$ue_config['password']}");
 //     }
+
+//     curl_setopt($req, CURLOPT_HTTPHEADER, $headers);
 // }
 
-function debugConsole($output) {    
+function console_log($output) {    
     echo "<script>console.log(" . json_encode($output, JSON_HEX_TAG) . ");</script>";
 }
 
