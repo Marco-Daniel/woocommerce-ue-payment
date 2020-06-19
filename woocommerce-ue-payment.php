@@ -69,14 +69,14 @@ function ue_wc_gateway_init_class() {
             }
             
             // make settings global
-            $GLOBALS['ue_config'] = [
-                'root'          => $this->root_url,
-                'api_root'      => "{$this->root_url}/api",
-                'accessClient'  => $this->accessclient,
-                'user'          => $this->username,
-                'password'      => $this->password,
-            ];
-            $GLOBALS['payment_title'] = $this->title;
+            // $GLOBALS['ue_config'] = [
+            //     'root'          => $this->root_url,
+            //     'api_root'      => "{$this->root_url}/api",
+            //     'accessClient'  => $this->accessclient,
+            //     'user'          => $this->username,
+            //     'password'      => $this->password,
+            // ];
+            // $GLOBALS['payment_title'] = $this->title;
 
             // This action hook saves the settings
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -111,9 +111,11 @@ function ue_wc_gateway_init_class() {
 							<button type="submit" class="<?php echo esc_attr( $data['class'] ); ?>" type="submit" name="<?php echo esc_attr( $field ); ?>" id="<?php echo esc_attr( $field ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php echo $this->get_custom_attribute_html( $data ); ?>>Genereer AccessClient</button>
 							<p id="accessClientKey"class="description" style="color:red;"><?php echo $GLOBALS['GeneratedAccessClientToken']; ?></p>
 							<p class="description">
-                                <u>Vul uw activatiecode in en klik op Genereer Accesscode </u> 
+                                <u>Vul uw activatiecode in en klik op Genereer AccessCode </u> 
                                 <br> Log in op uw Utrechtse Euro account en ga naar:
                                 <br> Persoonlijk > Instellingen > Webshop koppelingen > toegangscodes > Toevoegen > [Vul een beschrijving in] > Opslaan > Activatiecode > Bevestigen
+                                <br> Vul de vier-cijferige code hierboven in.
+                                <br> Als u deze optie niet heeft in uw U€-account, neemt u dan contact op met de Utrechtse Euro.
                             </p>
 							<?php echo $this->get_description_html( $data ); ?>
 						</form>
@@ -160,16 +162,16 @@ function ue_wc_gateway_init_class() {
                     'type'          => 'checkbox',
                     'description'   => 'Gebruik een accesscode ipv gebruikersnaam en wachtwoord als de gebruiker wordt doorgelinkt naar de Utrechtse Euro betalingspagina, deze optie wordt aangeraden boven een gebruikersnaam en wachtwoord vanwege veiligheidsredenen.',
                     'default'       => 'no',
-                    'desc_tip'      => true,
                 ),
                 'accessClientGenerate' => array(
                     'type'          => 'screen_button',
-                    'desc_tip'   => 'Utrechtse Euro gebruikersnaam en wachtwoord moeten zijn ingevuld voordat de token gegenereerd kan worden. Vergeet deze niet op te slaan na het generenen.'
+                    'desc_tip'   => 'Utrechtse Euro gebruikersnaam en wachtwoord moeten zijn ingevuld voordat de token gegenereerd kan worden!'
                 ),
                 'accessclient' => array(
                     'title'         => 'Accessclient code',
                     'type'          => 'text',
-                    'description'   => 'Vergeet niet na het genereren van uw code om deze op te slaan door onderaan de pagina op Opslaan te klikken!',
+                    'description'   => 'Hier staat de automatisch gegenereerde accesclient, hier hoeft u verder niks mee te doen.',
+                    'desc_tip'      => true,
                 ),
                 'display_settings_title' => array(
 					'title'       => __( 'Weergave instellingen' ),
@@ -273,7 +275,7 @@ function generateAccessclientToken( $base_url, $accesscode, $username, $password
         $error_message = $response->get_error_message();
         WC_Admin_Settings::add_error("Er ging iets mis: $error_message");
     } else {
-        WC_Admin_Settings::add_error("AccessClient is met succes geactiveerd.");
+        WC_Admin_Settings::add_message("AccessClient is met succes geactiveerd.");
         $response_body = wp_remote_retrieve_body($response);
         $json = json_decode($response_body);
 
