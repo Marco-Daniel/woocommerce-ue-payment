@@ -38,6 +38,7 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
 
 function generate_ticket_number($base_url, $headers, $body) {
   $url = "{$base_url}/tickets";
+
   $response = wp_remote_request( $url, array(
       'method'      => 'POST',
       'httpversion' => '1.0',
@@ -46,7 +47,7 @@ function generate_ticket_number($base_url, $headers, $body) {
       'sslverify'   => false,
       'blocking'    => true,
       'headers'     => $headers,
-      'body'        => $body,
+      'body'        => json_encode($body),
       )
   );
 
@@ -55,7 +56,20 @@ function generate_ticket_number($base_url, $headers, $body) {
   } else {
       $response_body = wp_remote_retrieve_body($response);
       $json = json_decode($response_body);
-      return $json->ticketNumber;
+
+      $response_code = wp_remote_retrieve_response_code($response);
+
+      error_log($response_code);
+      error_log($response_body);
+
+      switch ($response_code) {
+          case 201:
+            // succes
+            return $json->ticketNumber;
+          default:
+            // handle error
+            break;
+      }
   }
 }
 

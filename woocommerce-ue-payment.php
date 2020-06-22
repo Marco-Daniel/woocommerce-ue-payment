@@ -83,15 +83,17 @@ function ue_wc_gateway_init() {
         }
 
         // Generate appropriate headers to make requests
-        public function headers() {
+        private function headers() {
             if ($this->use_accessclient) {
                 return array(
                     'Content-Transfer-Encoding' => 'application/json',
+                    'Content-type' => 'application/json;charset=utf-8',
                     'Access-Client-Token' => $this->accessclient
                 ); 
             } else {
                 return array(
                     'Content-Transfer-Encoding' => 'application/json',
+                    'Content-type' => 'application/json;charset=utf-8',
                     'Authorization' => 'Basic '. base64_encode("{$this->username}:{$this->password}")
                 );
             }
@@ -255,8 +257,14 @@ function ue_wc_gateway_init() {
 
             //urls
             $successUrl = $order->get_checkout_order_received_url();
-            $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id?ticketNumber=$ticketNumber");
+            $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id");
             $cancelUrl = $order->get_cancel_order_url();
+            // $successUrl = "https://www.google.nl/?q=test";
+            // $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id");
+            // $cancelUrl = "https://www.google.nl/test";
+
+            error_log($successUrl);
+            error_log($cancelUrl);
 
             //create request body
             $body = array(
@@ -277,7 +285,9 @@ function ue_wc_gateway_init() {
                 $body['type'] = $type;
             }
 
-            $ticketNumber = generate_ticket_number($this->api_endpoint, headers(), $body);
+            $ticketNumber = generate_ticket_number($this->api_endpoint, $this->headers(), $body);
+            $order->update_meta_data("_ticket_number", $ticketNumber);
+            error_log($ticketNumber);
 
             if (strpos($ticketNumber, 'Error') !== false) {
                 //Add WC Notice with error message
@@ -285,6 +295,7 @@ function ue_wc_gateway_init() {
                 return false;
             } else {
                 //Return is succesfull, so redirection is taking place
+                console_log("{$this->root_url}/pay/{$ticketNumber}");
                 return array(
                 'result' => 'success',
                 'redirect' => "{$this->root_url}/pay/{$ticketNumber}"
@@ -294,21 +305,21 @@ function ue_wc_gateway_init() {
  
         // webhook for U€ to let WP know to finalize payment
         public function webhook() { 
-            echo "OK";
 			$order_id = $_GET['orderId'];
 			$order = wc_get_order( $order_id );
-			$ticketNumber = $_GET['ticketNumber'];
-			echo "<br>OrderID: $order_id";
+            $ticketNumber = $order->get_meta('_ticket_number');
+            
+            error_log("testing ticketnumber");
+            error_log($ticketNumber);
 		 
 			try {
-			    $transactionNumber = process_ticket($this->api_endpoint, headers(), $ticketNumber, $order_id);
+			    $transactionNumber = process_ticket($this->api_endpoint, $this->headers(), $ticketNumber, $order_id);
 			    if (!empty($transactionNumber)) {
 
 			    	//Complete order when ticket is processed
 			        $order->payment_complete($transactionNumber);
-
 					$order->reduce_order_stock();
-					echo "<br>TransactionNumber: $transactionNumber";
+
 					$note = "Bestelling compleet met transactie-ID: $transactionNumber";
 					$order->add_order_note( $note );
 			    }
