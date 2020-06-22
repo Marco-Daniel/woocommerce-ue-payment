@@ -47,7 +47,7 @@ function ue_wc_gateway_init() {
             $this->icon = "";
             $this->has_fields = false;
             $this->method_title = "Utrechtse Euro";
-            $this->method_description = "Activeer betalingen met de Utrechtse Euro";
+            $this->method_description = "Accepteer betalingen met de Utrechtse Euro";
 
             $this->supports = array('products');
             $this->init_form_fields();
