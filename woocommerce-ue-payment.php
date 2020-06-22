@@ -5,7 +5,7 @@
  * Description: Take Utrechtse Euro payments on your store.
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 1.0.4
+ * Version: 1.0.5
  * WC requires at least: 3.0.0
  * WC tested up to: 4.2.1
  * Copyright: (c) 2020
@@ -128,6 +128,7 @@ function ue_wc_gateway_init() {
                                 Log in op uw Utrechtse Euro account en ga naar:
                                 <br> Persoonlijk > Instellingen > Webshop koppelingen > toegangscodes > Toevoegen > [Vul een beschrijving in] > Opslaan > Activatiecode > Bevestigen
                                 <br> Vul de vier-cijferige code hierboven in en klik op <b><?php echo wp_kses_post( $data['button_title'] ); ?></b>.
+                                <br>
                                 <br> <u>Als u deze instellingen niet kan vinden in uw U€-account, dan moeten deze instellingen nog geactiveerd worden voor uw.
                                 <br> Neem daarvoor contact op met de <a href="https://www.utrechtse-euro.nl/" rel="noopener noreferrer" target="_blank">Utrechtse Euro</a>, zij kunnen u verder helpen.</u>
                             </p>
