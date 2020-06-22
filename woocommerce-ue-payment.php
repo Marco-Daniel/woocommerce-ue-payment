@@ -132,7 +132,6 @@ function ue_wc_gateway_init() {
                                 <br> Vul de vier-cijferige code hierboven in en klik op Genereer AccessCode.
                                 <br> <u>Als u deze optie niet heeft in uw U€-account, neemt u dan contact op met de Utrechtse Euro.</u>
                             </p>
-							<?php echo $this->get_description_html( $data ); ?>
 						</form>
 					</fieldset>
 				</td>
@@ -161,30 +160,31 @@ function ue_wc_gateway_init() {
                     'type'          => 'checkbox',
                     'description'   => 'Plaats de gateway in test mode',
                     'default'       => 'yes',
-                    'desc_tip'      => true,
+                    'desc_tip'      => 'gebruikersnaam: demo, wachtwoord: 1234',
                 ),
                 'username' => array(
-                    'title'         => 'Utrechtse Euro gebruikersnaam',
+                    'title'         => 'U€ gebruikersnaam',
                     'type'          => 'text',
                 ),
                 'password' => array(
-                    'title'         => 'Utrechtse Euro wachtwoord',
+                    'title'         => 'U€ wachtwoord',
                     'type'          => 'password',
                 ),
                 'use_accessclient' => array(
                     'title'         => 'Accessclient',
                     'label'         => 'Activeer Accessclient Mode (deze optie wordt geadviseerd)',
                     'type'          => 'checkbox',
-                    'description'   => 'Gebruik een accesscode ipv gebruikersnaam en wachtwoord als de gebruiker wordt doorgelinkt naar de Utrechtse Euro betalingspagina, deze optie wordt aangeraden boven een gebruikersnaam en wachtwoord vanwege veiligheidsredenen.',
+                    'description'   => 'Gebruik een anoniem token ipv uw gebruikersnaam en wachtwoord als de gebruiker wordt doorgelinkt naar de Utrechtse Euro betalingspagina, deze optie heeft de voorkeur vanwege veiligheidsredenen.',
                     'default'       => 'no',
+                    'desc_tip'      => true,
                 ),
                 'accessClientGenerate' => array(
                     'type'          => 'screen_button',
-                    'desc_tip'   => 'Utrechtse Euro gebruikersnaam en wachtwoord moeten zijn ingevuld voordat de token gegenereerd kan worden!'
+                    'desc_tip'   => 'U€ gebruikersnaam, wachtwoord en uw activatie code moeten zijn ingevuld voordat de token gegenereerd kan worden!'
                 ),
                 'accessclient' => array(
                     'title'         => 'Accessclient code',
-                    'type'          => 'text',
+                    'type'          => 'password',
                     'description'   => 'Hier staat de automatisch gegenereerde accesclient, hier hoeft u verder niks mee te doen.',
                     'desc_tip'      => true,
                 ),
