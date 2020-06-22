@@ -71,9 +71,6 @@ function ue_wc_gateway_init() {
                 $accesscode = $_POST['accessClientCode'];
                 $token = generate_accessclient_token($this->api_endpoint, $accesscode, $this->username, $this->password);
 
-                error_log("inside class");
-                error_log($token);
-
                 $this->update_option('accessclient', $token);
                 $this->update_option('use_accessclient', 'yes');
             }
@@ -126,15 +123,14 @@ function ue_wc_gateway_init() {
 				<td class="forminp">
 					<fieldset>
 						<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
-						<form method="get" name="accessClientForm" id="accessClientForm" action="">
+						<form method="post" name="accessClientForm" id="accessClientForm" action="">
 							<input type="text" id="accessClientCode" name="accessClientCode" placeholder="AccessClient Activatie Code">
 							<button type="submit" class="<?php echo esc_attr( $data['class'] ); ?>" type="submit" name="<?php echo esc_attr( $field ); ?>" id="<?php echo esc_attr( $field ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php echo $this->get_custom_attribute_html( $data ); ?>>Genereer AccessClient</button>
 							<p class="description">
-                                <u>Vul uw activatiecode in en klik op Genereer AccessCode </u> 
                                 <br> Log in op uw Utrechtse Euro account en ga naar:
                                 <br> Persoonlijk > Instellingen > Webshop koppelingen > toegangscodes > Toevoegen > [Vul een beschrijving in] > Opslaan > Activatiecode > Bevestigen
-                                <br> Vul de vier-cijferige code hierboven in.
-                                <br> Als u deze optie niet heeft in uw U€-account, neemt u dan contact op met de Utrechtse Euro.
+                                <br> Vul de vier-cijferige code hierboven in en klik op Genereer AccessCode.
+                                <br> <u>Als u deze optie niet heeft in uw U€-account, neemt u dan contact op met de Utrechtse Euro.</u>
                             </p>
 							<?php echo $this->get_description_html( $data ); ?>
 						</form>
