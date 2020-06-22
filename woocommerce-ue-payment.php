@@ -129,7 +129,6 @@ function ue_wc_gateway_init() {
 						<form method="get" name="accessClientForm" id="accessClientForm" action="">
 							<input type="text" id="accessClientCode" name="accessClientCode" placeholder="AccessClient Activatie Code">
 							<button type="submit" class="<?php echo esc_attr( $data['class'] ); ?>" type="submit" name="<?php echo esc_attr( $field ); ?>" id="<?php echo esc_attr( $field ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php echo $this->get_custom_attribute_html( $data ); ?>>Genereer AccessClient</button>
-							<p id="accessClientKey"class="description" style="color:red;"><?php echo $GLOBALS['GeneratedAccessClientToken']; ?></p>
 							<p class="description">
                                 <u>Vul uw activatiecode in en klik op Genereer AccessCode </u> 
                                 <br> Log in op uw Utrechtse Euro account en ga naar:
