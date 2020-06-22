@@ -55,6 +55,7 @@ function ue_wc_gateway_init_class() {
             $this->use_accessclient = 'yes' === $this->get_option('use_accessclient');
 
             $this->root_url = $this->testmode ? 'https://demo.cyclos.org' : "https://mijn.circuitnederland.nl";
+            $this->api_endpoint = $this->root_url . '/api';
             $this->username = $this->testmode ? "ticket" : $this->get_option( 'username' );
             $this->password = $this->testmode ? "1234" : $this->get_option( 'password' );
             $this->accessclient = $this->use_accessclient ? $this->get_option( 'accessclient' ) : NULL;
@@ -62,7 +63,7 @@ function ue_wc_gateway_init_class() {
             // if accessclient is retrieved.
             if( !empty($_POST['accessClientCode'])) {
                 $accesscode = $_POST['accessClientCode'];
-                $token = generate_accessclient_token("{$this->root_url}/api", $accesscode, $this->username, $this->password);
+                $token = generate_accessclient_token($this->api_endpoint, $accesscode, $this->username, $this->password);
                 $this->update_option('accessclient', $token);
                 $this->update_option('use_accessclient', 'yes');
                 $GLOBALS['GeneratedAccessclientCode'] = $token;
@@ -220,6 +221,70 @@ function ue_wc_gateway_init_class() {
 			}
 		}
  
+        // We're processing the payments here, everything about it is in Step 5
+        public function process_payment( $order_id ) {
+            global $woocommerce;
+
+            // create ticket number
+            //$paymentURL = "";
+            $shop_title = get_bloginfo('name');
+            $order = wc_get_order( $order_id );
+            $amount = $order->get_total();
+            $description = "Betaling van $amount aan $shop_title";
+            $type = "handelsrekening.handels_transactie";
+
+            //Ticket urls
+            $successUrl = $order->get_checkout_order_received_url();
+            $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id?ticketNumber=$ticketNumber");
+            $cancelUrl = $order->get_cancel_order_url();
+
+            //create request headers
+            $headers = array('Content-Transfer-Encoding' => 'application/json');
+
+            if ($use_accessclient == true) {
+                $headers['Access-Client-Token'] = $accessclient;
+            } else {
+                $headers['Authorization'] = 'Basic '. base64_encode("{$this->username}:{$this->password}");
+            }
+
+            //create request body
+            $body = array(
+                'amount' => $amount,
+                'description' => $description,
+                'payer' => null,
+                'successUrl' => $successUrl,
+                'successWebhook' => $successWebhookUrl,
+                'cancelUrl' => $cancelUrl,
+                'orderId' => $order_id,
+                'expiresAfter' => array(
+                    'amount' => 1,
+                    'field' => 'hours'
+                )
+            );
+            
+            if ($this->testmode !== true) {
+                $body['type'] = $type;
+            }
+
+            $ticketNumber = generate_ticket_number($this->api_endpoint, $headers, $body);
+
+            if (strpos($ticketNumber, 'Error') !== false) {
+                //Add WC Notice with error message
+                wc_add_notice($ticketNumber);
+                return false;
+            } else {
+                //Return is succesfull, so redirection is taking place
+                return array(
+                'result' => 'success',
+                'redirect' => "{$this->root_url}/pay/{$ticketNumber}"
+                );
+            }
+        }
+ 
+        // In case you need a webhook, like PayPal IPN etc
+        public function webhook() { 
+         }
+
         // This function is not needed since most of the action occurs on the payment gateway website
         //
 		// public function payment_fields() {
@@ -235,14 +300,6 @@ function ue_wc_gateway_init_class() {
 		// public function validate_fields() {
 		// }
  
-        // We're processing the payments here, everything about it is in Step 5
-		public function process_payment( $order_id ) {
-            global $woocommerce;
-	 	}
- 
-        // In case you need a webhook, like PayPal IPN etc
-		public function webhook() { 
-	 	}
  	}
 }
 
@@ -280,7 +337,6 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
 }
 
 function generate_ticket_number($base_url, $headers, $body) {
-    
     $url = "{$base_url}/tickets";
     $response = wp_remote_request( $url, array(
         'method'      => 'POST',
@@ -295,32 +351,12 @@ function generate_ticket_number($base_url, $headers, $body) {
     );
 
     if ( is_wp_error($response) ) {
-        return $response->get_error_message();
+        return 'Error: ' . $response->get_error_message();
     } else {
         $response_body = wp_remote_retrieve_body($response);
         $json = json_decode($response_body);
         return $json->ticketNumber;
     }
-
-
-    // $headers = array('Content-Transfer-Encoding' => 'application/json');
-    // $body = array(
-    //     'amount' => $amount,
-    //     'description' => $description,
-    //     'payer' => $payer,
-    //     'successUrl' => $successUrl,
-    //     'successWebhook' => $successWebhookUrl,
-    //     'cancelUrl' => $cancelUrl,
-    //     'orderId' => $order_id,
-    //     'type'=> $type,
-    //     'expiresAfter' => $expiration
-    // );
-    
-    // if ($use_accessclient) {
-    //     array_push($headers, 'Access-Client-Token' => $accessclient;
-    // } else {
-    //     array_push($headers, 'Authorization' => 'Basic '. base64_encode("{$credentials->username}:{$credentials->password}"));
-    // }
 }
 
 
