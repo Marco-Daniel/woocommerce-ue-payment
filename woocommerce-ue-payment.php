@@ -183,9 +183,9 @@ function ue_wc_gateway_init() {
                     'desc_tip'   => 'U€ gebruikersnaam, wachtwoord en uw activatie code moeten zijn ingevuld voordat de token gegenereerd kan worden!'
                 ),
                 'accessclient' => array(
-                    'title'         => 'Accessclient code',
+                    'title'         => 'AccessClient token',
                     'type'          => 'password',
-                    'description'   => 'Hier staat de automatisch gegenereerde accesclient, hier hoeft u verder niks mee te doen.',
+                    'description'   => 'Hier staat de automatisch gegenereerde anonieme token, hier hoeft u verder niks mee te doen.',
                     'desc_tip'      => true,
                 ),
                 'display_settings_title' => array(
