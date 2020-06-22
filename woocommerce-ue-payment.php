@@ -5,7 +5,7 @@
  * Description: Take Utrechtse Euro payments on your store.
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 1.0.3
+ * Version: 1.0.4
  * WC requires at least: 3.0.0
  * WC tested up to: 4.2.1
  * Copyright: (c) 2020
@@ -170,8 +170,8 @@ function ue_wc_gateway_init() {
                     'type'          => 'password',
                 ),
                 'use_accessclient' => array(
-                    'title'         => 'Accessclient',
-                    'label'         => 'Activeer Accessclient Mode (deze optie wordt geadviseerd, bij het genereren van een token wordt de optie automatisch geactiveerd.)',
+                    'title'         => 'AccessClient',
+                    'label'         => 'Activeer AccessClient Mode (deze optie wordt geadviseerd, bij het genereren van een token wordt deze optie automatisch geactiveerd.)',
                     'type'          => 'checkbox',
                     'description'   => 'Gebruik een anoniem token ipv uw gebruikersnaam en wachtwoord als de gebruiker wordt doorgelinkt naar de Utrechtse Euro betalingspagina, deze optie heeft de voorkeur vanwege veiligheidsredenen.',
                     'default'       => 'no',
