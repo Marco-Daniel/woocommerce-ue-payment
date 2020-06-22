@@ -59,9 +59,6 @@ function generate_ticket_number($base_url, $headers, $body) {
 
       $response_code = wp_remote_retrieve_response_code($response);
 
-      error_log($response_code);
-      error_log($response_body);
-
       switch ($response_code) {
           case 201:
             // succes
