@@ -327,23 +327,7 @@ function ue_wc_gateway_init_class() {
 
 			update_option('webhook_debug', $_GET);
 			die();
-         }
-
-        // This function is not needed since most of the action occurs on the payment gateway website
-        //
-		// public function payment_fields() {
-		// }
- 
-        // We don't need custom JS for this plugin
-        //
-	 	// public function payment_scripts() {
-	 	// }
- 
-        // This function is not needed since most of the action occurs on the payment gateway website
-        //
-		// public function validate_fields() {
-		// }
- 
+         } 
  	}
 }
 
