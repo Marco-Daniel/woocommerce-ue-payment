@@ -253,15 +253,11 @@ function ue_wc_gateway_init() {
             $amount = $order->get_total();
             $shop_title = get_bloginfo('name');
             $description = "Betaling van $amount aan $shop_title";
-            $type = "handelsrekening.handels_transactie";
 
             //urls
             $successUrl = $order->get_checkout_order_received_url();
             $successWebhookUrl = get_home_url(NULL, "/wc-api/ue_payment_completed?orderId=$order_id");
             $cancelUrl = $order->get_cancel_order_url();
-            // $successUrl = "https://www.google.nl/?q=test";
-            // $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id");
-            // $cancelUrl = "https://www.google.nl/test";
 
             //create request body
             $body = array(
@@ -279,11 +275,10 @@ function ue_wc_gateway_init() {
             );
             
             if ($this->testmode !== true) {
-                $body['type'] = $type;
+                $body['type'] = "handelsrekening.handels_transactie";
             }
 
-            $ticketNumber = generate_ticket_number($this->api_endpoint, $this->headers(), $body);
-            //$order->add_meta_data("ticket_number", json_encode($ticketNumber));
+            $ticketNumber = generate_ticket_number($this->api_endpoint, $this->headers(), $body);;
 
             if (strpos($ticketNumber, 'Error') !== false) {
                 //Add WC Notice with error message
@@ -291,7 +286,6 @@ function ue_wc_gateway_init() {
                 return false;
             } else {
                 //Return is succesfull, so redirection is taking place
-                console_log("{$this->root_url}/pay/{$ticketNumber}");
                 return array(
                 'result' => 'success',
                 'redirect' => "{$this->root_url}/pay/{$ticketNumber}"
@@ -305,9 +299,6 @@ function ue_wc_gateway_init() {
 			$order = wc_get_order( $order_id );
             // $ticketNumber = json_decode($order->get_meta('ticket_number'));
             $ticketNumber = $_GET['ticketNumber'];
-            
-            error_log("testing ticketnumber");
-            error_log($ticketNumber);
 		 
 			try {
 			    $transactionNumber = process_ticket($this->api_endpoint, $this->headers(), $ticketNumber, $order_id);
@@ -322,9 +313,8 @@ function ue_wc_gateway_init() {
 			    }
 			} catch (Exception $e) {
 			    // Error when processing the ticket
-			    echo "<br>Error: - $e";
 				$order->update_status('Mislukt', sprintf(__('Foutmelding: %1$s'), $e));
-				$note = "Order is mislukt, de foutmelding staat hieronder.";
+				$note = sprintf(__('Foutmelding: %1$s'), $e);
 				$order->add_order_note( $note );
 			}
 
