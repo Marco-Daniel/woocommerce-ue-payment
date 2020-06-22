@@ -54,12 +54,12 @@ function ue_wc_gateway_init_class() {
             $this->testmode = 'yes' === $this->get_option( 'testmode' );
             $this->use_accessclient = 'yes' === $this->get_option('use_accessclient');
 
-            $this->root_url = $this->testmode ? 'https://demo.cyclos.org' : "https://mijn.circuitnederland.nl";
+            $this->root_url = $this->testmode ? 'https://demo.cyclos.org' : 'https://mijn.circuitnederland.nl';
             $this->api_endpoint = $this->root_url . '/api';
             $this->username = $this->testmode ? "ticket" : $this->get_option( 'username' );
             $this->password = $this->testmode ? "1234" : $this->get_option( 'password' );
             $this->accessclient = $this->use_accessclient ? $this->get_option( 'accessclient' ) : NULL;
- 
+
             // if accessclient is retrieved.
             if( !empty($_POST['accessClientCode'])) {
                 $accesscode = $_POST['accessClientCode'];
@@ -74,6 +74,20 @@ function ue_wc_gateway_init_class() {
 
             //Webhook for when payment is complete.
             add_action( 'woocommerce_api_ue_payment_completed', array( $this, 'webhook' ) );
+        }
+
+        public function headers() {
+            if ($this->use_accessclient) {
+                return array(
+                    'Content-Transfer-Encoding' => 'application/json',
+                    'Access-Client-Token' => $this->accessclient
+                ); 
+            } else {
+                return array(
+                    'Content-Transfer-Encoding' => 'application/json',
+                    'Authorization' => 'Basic '. base64_encode("{$this->username}:{$this->password}")
+                );
+            }
         }
 
         //Function to generate HTML for accessClient generator
@@ -238,14 +252,14 @@ function ue_wc_gateway_init_class() {
             $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id?ticketNumber=$ticketNumber");
             $cancelUrl = $order->get_cancel_order_url();
 
-            //create request headers
-            $headers = array('Content-Transfer-Encoding' => 'application/json');
+            // //create request headers
+            // $headers = array('Content-Transfer-Encoding' => 'application/json');
 
-            if ($use_accessclient == true) {
-                $headers['Access-Client-Token'] = $accessclient;
-            } else {
-                $headers['Authorization'] = 'Basic '. base64_encode("{$this->username}:{$this->password}");
-            }
+            // if ($use_accessclient == true) {
+            //     $headers['Access-Client-Token'] = $accessclient;
+            // } else {
+            //     $headers['Authorization'] = 'Basic '. base64_encode("{$this->username}:{$this->password}");
+            // }
 
             //create request body
             $body = array(
@@ -266,7 +280,7 @@ function ue_wc_gateway_init_class() {
                 $body['type'] = $type;
             }
 
-            $ticketNumber = generate_ticket_number($this->api_endpoint, $headers, $body);
+            $ticketNumber = generate_ticket_number($this->api_endpoint, headers(), $body);
 
             if (strpos($ticketNumber, 'Error') !== false) {
                 //Add WC Notice with error message
@@ -281,8 +295,38 @@ function ue_wc_gateway_init_class() {
             }
         }
  
-        // In case you need a webhook, like PayPal IPN etc
         public function webhook() { 
+            echo "OK";
+			$order_id = $_GET['orderId'];
+			$order = wc_get_order( $order_id );
+			$ticketNumber = $_GET['ticketNumber'];
+			echo "<br>OrderID: $order_id";
+		 
+			try {
+			    $transactionNumber = process_ticket($this->api_endpoint, headers(), $ticketNumber, $order_id);
+			    if (!empty($transactionNumber)) {
+
+			    	//Complete order when ticket is processed
+			        $order->payment_complete($transactionNumber);
+
+					$order->reduce_order_stock();
+					echo "<br>TransactionNumber: $transactionNumber";
+					$note = "Bestelling compleet met transactie-ID: $transactionNumber";
+					$order->add_order_note( $note );
+			    }
+			} catch (Exception $e) {
+			    // Error when processing the ticket
+			    echo "<br>Error: - $e";
+				$order->update_status('Mislukt', sprintf(__('Foutmelding: %1$s'), $e));
+				$note = "Order is mislukt, de foutmelding staat hieronder.";
+				$order->add_order_note( $note );
+			}
+
+			// Regardless the result return OK to U€ api
+			http_response_code(200);
+
+			update_option('webhook_debug', $_GET);
+			die();
          }
 
         // This function is not needed since most of the action occurs on the payment gateway website
@@ -325,8 +369,8 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
     );
 
     if ( is_wp_error($response) ) {
-        $error_message = $response->get_error_message();
-        WC_Admin_Settings::add_error("Er ging iets mis: $error_message");
+        $error = $response->get_error_message();
+        WC_Admin_Settings::add_error("Er ging iets mis: $error");
     } else {
         WC_Admin_Settings::add_message("AccessClient is met succes geactiveerd.");
         $response_body = wp_remote_retrieve_body($response);
@@ -357,6 +401,68 @@ function generate_ticket_number($base_url, $headers, $body) {
         $json = json_decode($response_body);
         return $json->ticketNumber;
     }
+}
+
+function process_ticket($base_url, $headers, $ticketNumber, $orderId) {
+    $url = "$base_url/tickets/$ticketNumber/process?orderId=$orderId";
+    $response = wp_remote_request( $url, array(
+        'method'      => 'POST',
+        'httpversion' => '1.0',
+        'timeout'     => 45,
+        'redirection' => 15,
+        'sslverify'   => false,
+        'blocking'    => true,
+        'headers'     => $headers,
+        'body'        => array(),
+        )
+    );
+
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
+    $json = json_decode($response_body);
+    $error = null;
+    
+    switch ($response_code) {
+        case 200:
+            if ($json->actuallyProcessed) {
+                $tx = $json->transaction;
+                // Using the transaction number is preferred.
+                // But in case it is disabled in Cyclos, return the internal identifier.
+                return empty($tx->transactionNumber) ? $tx->id : $tx->transactionNumber; 
+            }
+            return NULL;
+        case 401:
+            $error = "Geen inloggegevens";
+            break;
+        case 403:
+            $error = "Toegang geweigerd";
+            break;
+        case 404:
+            $error = "Ticket niet gevonden";
+            break;
+        case 422:
+            $error = "Ongeldig ticket";
+            break;
+        case 500:
+            // An error has occurred generating the payment
+            if ($json->code == 'insufficientBalance') {
+                $error = 'Niet genoeg saldo.';
+                break;
+            } else if ($json->code == 'destinationUpperLimitReached') {
+                $error = 'Maximale kredietlimiet bereikt.';
+                break;
+            } else {
+                // There are more error codes but for now only these two
+                // Log a detailed error
+                error_log("An unexpected error has occurred processing the ticket (type = {$json->exceptionType}, message = {$json->exceptionMessage})");
+            }
+        default:
+            $error = "Er is een onbekende fout opgetreden: ($response_code)";
+            break;
+    }
+    
+    // There was an error
+    throw new Exception($error);
 }
 
 
