@@ -70,6 +70,9 @@ function ue_wc_gateway_init_class() {
             
             // This action hook saves the settings
             add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+
+            //Webhook for when payment is complete.
+            add_action( 'woocommerce_api_ue_payment_completed', array( $this, 'webhook' ) );
         }
 
         //Function to generate HTML for accessClient generator
@@ -217,20 +220,24 @@ function ue_wc_gateway_init_class() {
 			}
 		}
  
-        // You will need it if you want your custom credit card form, Step 4 is about it
-		public function payment_fields() {
-		}
+        // This function is not needed since most of the action occurs on the payment gateway website
+        //
+		// public function payment_fields() {
+		// }
  
-        // Custom CSS and JS, in most cases required only when you decided to go with a custom credit card form
-	 	public function payment_scripts() {
-	 	}
+        // We don't need custom JS for this plugin
+        //
+	 	// public function payment_scripts() {
+	 	// }
  
-        // Fields validation, more in Step 5
-		public function validate_fields() {
-		}
+        // This function is not needed since most of the action occurs on the payment gateway website
+        //
+		// public function validate_fields() {
+		// }
  
         // We're processing the payments here, everything about it is in Step 5
 		public function process_payment( $order_id ) {
+            global $woocommerce;
 	 	}
  
         // In case you need a webhook, like PayPal IPN etc
@@ -243,7 +250,6 @@ function ue_wc_gateway_init_class() {
 function generate_accessclient_token( $base_url, $accesscode, $username, $password ) {
 
     $url = "{$base_url}/clients/activate?code={$accesscode}";
-
     $headers = array(
         'Content-Transfer-Encoding' => 'application/json',
         'Authorization' => 'Basic '. base64_encode("{$username}:{$password}")
@@ -273,20 +279,50 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
     }
 }
 
-// function add_headers($req) {
-//     $headers = array('Content-Type: application/json');
+function generate_ticket_number($base_url, $headers, $body) {
+    
+    $url = "{$base_url}/tickets";
+    $response = wp_remote_request( $url, array(
+        'method'      => 'POST',
+        'httpversion' => '1.0',
+        'timeout'     => 45,
+        'redirection' => 15,
+        'sslverify'   => false,
+        'blocking'    => true,
+        'headers'     => $headers,
+        'body'        => $body,
+        )
+    );
 
-//     if (!empty($config['accessClient'])) {
-//         array_push(
-//             $headers, 
-//             "Access-Client-Token: {$ue_config['accessClient']}"
-//         );
-//     } else {
-//         curl_setopt($req, CURLOPT_USERPWD, "{$ue_config['user']}: {$ue_config['password']}");
-//     }
+    if ( is_wp_error($response) ) {
+        return $response->get_error_message();
+    } else {
+        $response_body = wp_remote_retrieve_body($response);
+        $json = json_decode($response_body);
+        return $json->ticketNumber;
+    }
 
-//     curl_setopt($req, CURLOPT_HTTPHEADER, $headers);
-// }
+
+    // $headers = array('Content-Transfer-Encoding' => 'application/json');
+    // $body = array(
+    //     'amount' => $amount,
+    //     'description' => $description,
+    //     'payer' => $payer,
+    //     'successUrl' => $successUrl,
+    //     'successWebhook' => $successWebhookUrl,
+    //     'cancelUrl' => $cancelUrl,
+    //     'orderId' => $order_id,
+    //     'type'=> $type,
+    //     'expiresAfter' => $expiration
+    // );
+    
+    // if ($use_accessclient) {
+    //     array_push($headers, 'Access-Client-Token' => $accessclient;
+    // } else {
+    //     array_push($headers, 'Authorization' => 'Basic '. base64_encode("{$credentials->username}:{$credentials->password}"));
+    // }
+}
+
 
 function console_log($output) {    
     echo "<script>console.log(" . json_encode($output, JSON_HEX_TAG) . ");</script>";
