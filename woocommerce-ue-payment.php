@@ -5,7 +5,7 @@
  * Description: Take Utrechtse Euro payments on your store.
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 0.0.1
+ * Version: 1.0.1
  * WC requires at least: 3.0.0
  * WC tested up to: 3.6.2
  * Copyright: (c) 2020
@@ -147,7 +147,7 @@ function ue_wc_gateway_init() {
 				),
                 'enabled' => array(
                     'title'         => 'Activeer/Deactiveer',
-                    'label'         => 'Activeer UE Gateway',
+                    'label'         => 'Activeer U€ Gateway',
                     'type'          => 'checkbox',
                     'description'   => '',
                     'default'       => 'no'
@@ -156,9 +156,9 @@ function ue_wc_gateway_init() {
                     'title'         => 'Test mode',
                     'label'         => 'Activeer Test Mode',
                     'type'          => 'checkbox',
-                    'description'   => 'Plaats de gateway in test mode',
+                    'description'   => 'gebruikersnaam: demo, wachtwoord: 1234',
                     'default'       => 'yes',
-                    'desc_tip'      => 'gebruikersnaam: demo, wachtwoord: 1234',
+                    'desc_tip'      => true,
                 ),
                 'username' => array(
                     'title'         => 'U€ gebruikersnaam',
@@ -195,7 +195,7 @@ function ue_wc_gateway_init() {
                     'title'         => 'Titel',
                     'type'          => 'text',
                     'description'   => 'De titel die de bezoeker tijdens check-out ziet.',
-                    'default'       => 'Utrechtse Euro',
+                    'default'       => 'U€',
                 ),
                 'description' => array(
                     'title'         => 'Beschrijving',
