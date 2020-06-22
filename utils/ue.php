@@ -32,6 +32,9 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
       $response_body = wp_remote_retrieve_body($response);
       $json = json_decode($response_body);
 
+      error_log("acces client token:");
+      error_log($json->token);
+      
       return $json->token;
   }
 }

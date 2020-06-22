@@ -70,9 +70,12 @@ function ue_wc_gateway_init() {
             if( !empty($_POST['accessClientCode'])) {
                 $accesscode = $_POST['accessClientCode'];
                 $token = generate_accessclient_token($this->api_endpoint, $accesscode, $this->username, $this->password);
+
+                error_log("inside class");
+                error_log($token);
+
                 $this->update_option('accessclient', $token);
                 $this->update_option('use_accessclient', 'yes');
-                $GLOBALS['GeneratedAccessclientCode'] = $token;
             }
             
             // This action hook saves the settings
