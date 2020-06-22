@@ -104,11 +104,10 @@ function ue_wc_gateway_init() {
             $field    = $this->plugin_id . $this->id . '_' . $key;
 			$defaults = array(
 				'class'             => 'button-secondary',
-				'css'               => '',
-				'custom_attributes' => array(),
 				'desc_tip'          => false,
 				'description'       => '',
-				'title'             => '',
+                'title'             => 'Genereer AccessClient token',
+                'button_title'      => 'Genereer token'
 			);
 
 			$data = wp_parse_args( $data, $defaults );
@@ -125,9 +124,9 @@ function ue_wc_gateway_init() {
 						<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
 						<form method="post" name="accessClientForm" id="accessClientForm" action="">
 							<input type="text" id="accessClientCode" name="accessClientCode" placeholder="AccessClient Activatie Code">
-							<button type="submit" class="<?php echo esc_attr( $data['class'] ); ?>" type="submit" name="<?php echo esc_attr( $field ); ?>" id="<?php echo esc_attr( $field ); ?>" style="<?php echo esc_attr( $data['css'] ); ?>" <?php echo $this->get_custom_attribute_html( $data ); ?>>Genereer AccessClient</button>
+							<button type="submit" class="<?php echo esc_attr( $data['class'] ); ?>" type="submit" name="<?php echo esc_attr( $field ); ?>" id="<?php echo esc_attr( $field ); ?>" ><?php echo wp_kses_post( $data['button_title'] ); ?></button>
 							<p class="description">
-                                <br> Log in op uw Utrechtse Euro account en ga naar:
+                                Log in op uw Utrechtse Euro account en ga naar:
                                 <br> Persoonlijk > Instellingen > Webshop koppelingen > toegangscodes > Toevoegen > [Vul een beschrijving in] > Opslaan > Activatiecode > Bevestigen
                                 <br> Vul de vier-cijferige code hierboven in en klik op Genereer AccessCode.
                                 <br> <u>Als u deze optie niet heeft in uw U€-account, neemt u dan contact op met de Utrechtse Euro.</u>
@@ -180,7 +179,7 @@ function ue_wc_gateway_init() {
                 ),
                 'accessClientGenerate' => array(
                     'type'          => 'screen_button',
-                    'desc_tip'   => 'U€ gebruikersnaam, wachtwoord en uw activatie code moeten zijn ingevuld voordat de token gegenereerd kan worden!'
+                    'desc_tip'      => 'U€ gebruikersnaam, wachtwoord en uw activatie code moeten zijn ingevuld voordat de token gegenereerd kan worden!'
                 ),
                 'accessclient' => array(
                     'title'         => 'AccessClient token',
