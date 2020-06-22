@@ -70,7 +70,6 @@ function ue_wc_gateway_init() {
             if( !empty($_POST['accessClientCode'])) {
                 $accesscode = $_POST['accessClientCode'];
                 $token = generate_accessclient_token($this->api_endpoint, $accesscode, $this->username, $this->password);
-
                 $this->update_option('accessclient', $token);
                 $this->update_option('use_accessclient', 'yes');
             }
@@ -171,7 +170,7 @@ function ue_wc_gateway_init() {
                 ),
                 'use_accessclient' => array(
                     'title'         => 'Accessclient',
-                    'label'         => 'Activeer Accessclient Mode (deze optie wordt geadviseerd)',
+                    'label'         => 'Activeer Accessclient Mode (deze optie wordt geadviseerd, bij het genereren van een token wordt de optie automatisch geactiveerd.)',
                     'type'          => 'checkbox',
                     'description'   => 'Gebruik een anoniem token ipv uw gebruikersnaam en wachtwoord als de gebruiker wordt doorgelinkt naar de Utrechtse Euro betalingspagina, deze optie heeft de voorkeur vanwege veiligheidsredenen.',
                     'default'       => 'no',
