@@ -283,7 +283,7 @@ function ue_wc_gateway_init() {
             }
 
             $ticketNumber = generate_ticket_number($this->api_endpoint, $this->headers(), $body);
-            $order->add_meta_data("ticket_number", json_encode($ticketNumber));
+            //$order->add_meta_data("ticket_number", json_encode($ticketNumber));
 
             if (strpos($ticketNumber, 'Error') !== false) {
                 //Add WC Notice with error message
@@ -303,7 +303,8 @@ function ue_wc_gateway_init() {
         public function webhook() { 
 			$order_id = $_GET['orderId'];
 			$order = wc_get_order( $order_id );
-            $ticketNumber = json_decode($order->get_meta('ticket_number'));
+            // $ticketNumber = json_decode($order->get_meta('ticket_number'));
+            $ticketNumber = $_GET['ticketNumber'];
             
             error_log("testing ticketnumber");
             error_log($ticketNumber);
