@@ -257,14 +257,11 @@ function ue_wc_gateway_init() {
 
             //urls
             $successUrl = $order->get_checkout_order_received_url();
-            $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id");
+            $successWebhookUrl = get_home_url(NULL, "/wc-api/ue_payment_completed?orderId=$order_id");
             $cancelUrl = $order->get_cancel_order_url();
             // $successUrl = "https://www.google.nl/?q=test";
             // $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id");
             // $cancelUrl = "https://www.google.nl/test";
-
-            error_log($successUrl);
-            error_log($cancelUrl);
 
             //create request body
             $body = array(
@@ -286,8 +283,7 @@ function ue_wc_gateway_init() {
             }
 
             $ticketNumber = generate_ticket_number($this->api_endpoint, $this->headers(), $body);
-            $order->update_meta_data("_ticket_number", $ticketNumber);
-            error_log($ticketNumber);
+            $order->add_meta_data("ticket_number", json_encode($ticketNumber));
 
             if (strpos($ticketNumber, 'Error') !== false) {
                 //Add WC Notice with error message
@@ -307,7 +303,7 @@ function ue_wc_gateway_init() {
         public function webhook() { 
 			$order_id = $_GET['orderId'];
 			$order = wc_get_order( $order_id );
-            $ticketNumber = $order->get_meta('_ticket_number');
+            $ticketNumber = json_decode($order->get_meta('ticket_number'));
             
             error_log("testing ticketnumber");
             error_log($ticketNumber);
