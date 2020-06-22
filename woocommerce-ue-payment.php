@@ -14,9 +14,14 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
+// Make sure Wordpress is running
 defined( 'ABSPATH' ) or exit;
 // Make sure WooCommerce is active
 if ( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' )))) return;
+
+// include helper functions
+require_once(dirname(__FILE__) . '/utils/ue.php');
+require_once(dirname(__FILE__) . '/utils/helper.php');
 
 // add link to settings on plugin page
 add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'ue_add_plugin_page_settings_link');
@@ -32,10 +37,11 @@ function ue_add_gateway_class( $gateways ) {
 	return $gateways;
 }
 
-add_action( 'plugins_loaded', 'ue_wc_gateway_init_class' );
-function ue_wc_gateway_init_class() {
+add_action( 'plugins_loaded', 'ue_wc_gateway_init' );
+function ue_wc_gateway_init() {
 	class WC_Gateway_UE extends WC_Payment_Gateway {
  
+        // Setup basics
  		public function __construct() {
             $this->id = "ue";
             $this->icon = "";
@@ -76,6 +82,7 @@ function ue_wc_gateway_init_class() {
             add_action( 'woocommerce_api_ue_payment_completed', array( $this, 'webhook' ) );
         }
 
+        // Generate appropriate headers to make requests
         public function headers() {
             if ($this->use_accessclient) {
                 return array(
@@ -90,7 +97,7 @@ function ue_wc_gateway_init_class() {
             }
         }
 
-        //Function to generate HTML for accessClient generator
+        //Function to generate HTML for accessClient generator in the WP-admin UI
 		public function generate_screen_button_html( $key, $data ) {
             $field    = $this->plugin_id . $this->id . '_' . $key;
 			$defaults = array(
@@ -199,9 +206,9 @@ function ue_wc_gateway_init_class() {
                     'default'       => 'Betaal met Utrechtse Euro\'s.',
                 ),
             );
-         }
+        }
          
-         //Admin options validation and processing.	
+        //Back-end options validation and processing.	
 		public function process_admin_options(){
 			if ($_POST['woocommerce_ue_use_accessclient'] == true) {
 				if ($_POST['woocommerce_ue_testmode'] == true) {
@@ -240,26 +247,16 @@ function ue_wc_gateway_init_class() {
             global $woocommerce;
 
             // create ticket number
-            //$paymentURL = "";
-            $shop_title = get_bloginfo('name');
             $order = wc_get_order( $order_id );
             $amount = $order->get_total();
+            $shop_title = get_bloginfo('name');
             $description = "Betaling van $amount aan $shop_title";
             $type = "handelsrekening.handels_transactie";
 
-            //Ticket urls
+            //urls
             $successUrl = $order->get_checkout_order_received_url();
             $successWebhookUrl = get_home_url(NULL, "/wc-api/cyclos_payment_completed?orderId=$order_id?ticketNumber=$ticketNumber");
             $cancelUrl = $order->get_cancel_order_url();
-
-            // //create request headers
-            // $headers = array('Content-Transfer-Encoding' => 'application/json');
-
-            // if ($use_accessclient == true) {
-            //     $headers['Access-Client-Token'] = $accessclient;
-            // } else {
-            //     $headers['Authorization'] = 'Basic '. base64_encode("{$this->username}:{$this->password}");
-            // }
 
             //create request body
             $body = array(
@@ -295,6 +292,7 @@ function ue_wc_gateway_init_class() {
             }
         }
  
+        // webhook for U€ to let WP know to finalize payment
         public function webhook() { 
             echo "OK";
 			$order_id = $_GET['orderId'];
@@ -329,129 +327,6 @@ function ue_wc_gateway_init_class() {
 			die();
          } 
  	}
-}
-
-// helper functions
-function generate_accessclient_token( $base_url, $accesscode, $username, $password ) {
-
-    $url = "{$base_url}/clients/activate?code={$accesscode}";
-    $headers = array(
-        'Content-Transfer-Encoding' => 'application/json',
-        'Authorization' => 'Basic '. base64_encode("{$username}:{$password}")
-    );
-    
-    $response = wp_remote_request( $url, array(
-        'method'      => 'POST',
-        'httpversion' => '1.0',
-        'timeout'     => 45,
-        'redirection' => 15,
-        'sslverify'   => false,
-        'blocking'    => true,
-        'headers'     => $headers,
-        'body'        => array(),
-        )
-    );
-
-    if ( is_wp_error($response) ) {
-        $error = $response->get_error_message();
-        WC_Admin_Settings::add_error("Er ging iets mis: $error");
-    } else {
-        WC_Admin_Settings::add_message("AccessClient is met succes geactiveerd.");
-        $response_body = wp_remote_retrieve_body($response);
-        $json = json_decode($response_body);
-
-        return $json->token;
-    }
-}
-
-function generate_ticket_number($base_url, $headers, $body) {
-    $url = "{$base_url}/tickets";
-    $response = wp_remote_request( $url, array(
-        'method'      => 'POST',
-        'httpversion' => '1.0',
-        'timeout'     => 45,
-        'redirection' => 15,
-        'sslverify'   => false,
-        'blocking'    => true,
-        'headers'     => $headers,
-        'body'        => $body,
-        )
-    );
-
-    if ( is_wp_error($response) ) {
-        return 'Error: ' . $response->get_error_message();
-    } else {
-        $response_body = wp_remote_retrieve_body($response);
-        $json = json_decode($response_body);
-        return $json->ticketNumber;
-    }
-}
-
-function process_ticket($base_url, $headers, $ticketNumber, $orderId) {
-    $url = "$base_url/tickets/$ticketNumber/process?orderId=$orderId";
-    $response = wp_remote_request( $url, array(
-        'method'      => 'POST',
-        'httpversion' => '1.0',
-        'timeout'     => 45,
-        'redirection' => 15,
-        'sslverify'   => false,
-        'blocking'    => true,
-        'headers'     => $headers,
-        'body'        => array(),
-        )
-    );
-
-    $response_code = wp_remote_retrieve_response_code($response);
-    $response_body = wp_remote_retrieve_body($response);
-    $json = json_decode($response_body);
-    $error = null;
-    
-    switch ($response_code) {
-        case 200:
-            if ($json->actuallyProcessed) {
-                $tx = $json->transaction;
-                // Using the transaction number is preferred.
-                // But in case it is disabled in Cyclos, return the internal identifier.
-                return empty($tx->transactionNumber) ? $tx->id : $tx->transactionNumber; 
-            }
-            return NULL;
-        case 401:
-            $error = "Geen inloggegevens";
-            break;
-        case 403:
-            $error = "Toegang geweigerd";
-            break;
-        case 404:
-            $error = "Ticket niet gevonden";
-            break;
-        case 422:
-            $error = "Ongeldig ticket";
-            break;
-        case 500:
-            // An error has occurred generating the payment
-            if ($json->code == 'insufficientBalance') {
-                $error = 'Niet genoeg saldo.';
-                break;
-            } else if ($json->code == 'destinationUpperLimitReached') {
-                $error = 'Maximale kredietlimiet bereikt.';
-                break;
-            } else {
-                // There are more error codes but for now only these two
-                // Log a detailed error
-                error_log("An unexpected error has occurred processing the ticket (type = {$json->exceptionType}, message = {$json->exceptionMessage})");
-            }
-        default:
-            $error = "Er is een onbekende fout opgetreden: ($response_code)";
-            break;
-    }
-    
-    // There was an error
-    throw new Exception($error);
-}
-
-
-function console_log($output) {    
-    echo "<script>console.log(" . json_encode($output, JSON_HEX_TAG) . ");</script>";
 }
 
 ?>
