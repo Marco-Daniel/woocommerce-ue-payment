@@ -5,7 +5,7 @@
  * Description: Ontvang U€ betalingen in je webwinkel
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 1.1.1
+ * Version: 1.1.3
  * WC requires at least: 3.0.0
  * WC tested up to: 4.2.2
  * Copyright: (c) 2020
@@ -162,6 +162,31 @@ function ue_wc_gateway_init() {
             <?php
             return ob_get_clean();
         }
+        
+        public function generate_logo_dev_html( $key, $data ) {
+            $field = $this->plugin_id . $this->id . '_' . $key;
+            $defaults = array(
+				'desc_tip'          => false,
+				'description'       => '',
+                'title'             => 'Deze plugin is mogelijk gemaakt door:',
+            );
+            $data = wp_parse_args( $data, $defaults );
+
+            ob_start();
+            ?>
+            	<tr valign="top">
+				<th scope="row" class="titledesc">
+					<label for="<?php echo esc_attr( $field ); ?>"><?php echo wp_kses_post( $data['title'] ); ?></label>
+				</th>
+				<td>
+                    <a href="https://mddd.nl" rel="noopener">
+                        <img src="<?php echo plugin_dir_url( __FILE__ ) . 'assets/logo_150px.gif'?>" alt="M. D. Design & Development" />
+                    </a>
+				</td>
+			</tr>
+            <?php
+            return ob_get_clean();
+        }
 
         // Plugin options
  		public function init_form_fields(){
@@ -235,6 +260,9 @@ function ue_wc_gateway_init() {
                 'donate' => array(
                     'type'          => 'donate_img',
                 ),
+                'developer' => array(
+                    'type'          => 'logo_dev',
+                )
             );
         }
          
