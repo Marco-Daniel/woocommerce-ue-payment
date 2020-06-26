@@ -5,9 +5,9 @@
  * Description: Ontvang U€ betalingen in je webwinkel
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 1.0.5
+ * Version: 1.1.1
  * WC requires at least: 3.0.0
- * WC tested up to: 4.2.1
+ * WC tested up to: 4.2.2
  * Copyright: (c) 2020
  *
  * License: GNU General Public License v3.0
@@ -145,7 +145,7 @@ function ue_wc_gateway_init() {
             $defaults = array(
 				'desc_tip'          => false,
 				'description'       => '',
-                'title'             => 'Scan onderstaande QR-code om U€ te doneren om de verdere ontwikkeling van deze plugin mogelijk te maken.',
+                'title'             => 'Doneer U€ om bij de dragen aan deze plugin.',
             );
             $data = wp_parse_args( $data, $defaults );
 
@@ -228,6 +228,10 @@ function ue_wc_gateway_init() {
                     'description'   => 'De beschrijving die de bezoeker tijdens check-out ziet.',
                     'default'       => 'Betaal met Utrechtse Euro\'s.',
                 ),
+                'donate_title' => array(
+					'title'       => __( 'Scan onderstaande QR-code om U€ te doneren om bij te dragen aan de verdere ontwikkeling van deze plugin.' ),
+					'type'        => 'title',
+				),
                 'donate' => array(
                     'type'          => 'donate_img',
                 ),
