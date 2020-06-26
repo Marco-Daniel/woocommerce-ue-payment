@@ -1,8 +1,8 @@
 <?php
 /*
- * Plugin Name: WooCommerce Utrechtse Euro Payment Gateway
+ * Plugin Name: Utrechtse Euro Payment Gateway for WooCommerce
  * Plugin URI: https://mddd.nl
- * Description: Take Utrechtse Euro payments on your store.
+ * Description: Ontvang U€ betalingen in je webwinkel
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
  * Version: 1.0.5
@@ -100,7 +100,7 @@ function ue_wc_gateway_init() {
 
         //Function to generate HTML for accessClient generator in the WP-admin UI
 		public function generate_screen_button_html( $key, $data ) {
-            $field = create_field($key);
+            $field = $this->plugin_id . $this->id . '_' . $key;
 			$defaults = array(
 				'class'             => 'button-secondary',
 				'desc_tip'          => false,
@@ -141,7 +141,7 @@ function ue_wc_gateway_init() {
         }
         
         public function generate_donate_img_html( $key, $data ) {
-            $field = create_field($key);
+            $field = $this->plugin_id . $this->id . '_' . $key;
             $defaults = array(
 				'desc_tip'          => false,
 				'description'       => '',
@@ -161,10 +161,6 @@ function ue_wc_gateway_init() {
 			</tr>
             <?php
             return ob_get_clean();
-        }
-
-        function create_field ($key) {
-            return $this->plugin_id . $this->id . '_' . $key;
         }
 
         // Plugin options
