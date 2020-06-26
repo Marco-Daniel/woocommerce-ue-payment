@@ -100,7 +100,7 @@ function ue_wc_gateway_init() {
 
         //Function to generate HTML for accessClient generator in the WP-admin UI
 		public function generate_screen_button_html( $key, $data ) {
-            $field    = $this->plugin_id . $this->id . '_' . $key;
+            $field = create_field($key);
 			$defaults = array(
 				'class'             => 'button-secondary',
 				'desc_tip'          => false,
@@ -138,7 +138,34 @@ function ue_wc_gateway_init() {
 			</tr>
 			<?php
 			return ob_get_clean();
-		}
+        }
+        
+        public function generate_donate_modal_html ( $key, $data ) {
+            $field = create_field($key);
+            $defaults = array(
+				'desc_tip'          => false,
+				'description'       => '',
+                'title'             => 'Scan onderstaande QR-code om U€ te doneren om de verdere ontwikkeling van deze plugin mogelijk te maken.',
+            );
+            $data = wp_parse_args( $data, $defaults );
+
+            ob_start();
+            ?>
+            	<tr valign="top">
+				<th scope="row" class="titledesc">
+					<label for="<?php echo esc_attr( $field ); ?>"><?php echo wp_kses_post( $data['title'] ); ?></label>
+				</th>
+				<td>
+                    <img src="<?php echo plugin_dir_url( __FILE__ ) . 'assets/qr-code.png'?>" alt="doneer middels qr-code" />
+				</td>
+			</tr>
+            <?php
+            return ob_get_clean();
+        }
+
+        function create_field ($key) {
+            return $this->plugin_id . $this->id . '_' . $key;
+        }
 
         // Plugin options
  		public function init_form_fields(){
@@ -204,6 +231,9 @@ function ue_wc_gateway_init() {
                     'type'          => 'textarea',
                     'description'   => 'De beschrijving die de bezoeker tijdens check-out ziet.',
                     'default'       => 'Betaal met Utrechtse Euro\'s.',
+                ),
+                'donate' => array(
+                    'type'          => 'donate_modal',
                 ),
             );
         }
