@@ -140,7 +140,7 @@ function ue_wc_gateway_init() {
 			return ob_get_clean();
         }
         
-        public function generate_donate_modal_html ( $key, $data ) {
+        public function generate_donate_img_html( $key, $data ) {
             $field = create_field($key);
             $defaults = array(
 				'desc_tip'          => false,
@@ -233,7 +233,7 @@ function ue_wc_gateway_init() {
                     'default'       => 'Betaal met Utrechtse Euro\'s.',
                 ),
                 'donate' => array(
-                    'type'          => 'donate_modal',
+                    'type'          => 'donate_img',
                 ),
             );
         }
