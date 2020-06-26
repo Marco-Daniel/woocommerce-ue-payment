@@ -1,11 +1,11 @@
 <?php
 /*
- * Plugin Name: Utrechtse Euro Payment Gateway for WooCommerce
+ * Plugin Name: Utrechtse Euro betalingen voor WooCommerce
  * Plugin URI: https://mddd.nl
  * Description: Ontvang U€ betalingen in je webwinkel
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 1.1.4
+ * Version: 1.1.5
  * WC requires at least: 3.0.0
  * WC tested up to: 4.2.2
  * Copyright: (c) 2020
