@@ -5,13 +5,10 @@
  * Description: Ontvang U€ betalingen in je webwinkel
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 1.1.5
+ * Version: 1.2.1
  * WC requires at least: 3.0.0
  * WC tested up to: 4.2.2
  * Copyright: (c) 2020
- *
- * License: GNU General Public License v3.0
- * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 // Make sure Wordpress is running
