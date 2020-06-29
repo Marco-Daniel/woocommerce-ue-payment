@@ -1,10 +1,10 @@
 <?php
 
 // include helper functions
-require_once(dirname(__FILE__) . '/utils/ue.php');
-require_once(dirname(__FILE__) . '/utils/helper.php');
+require_once(dirname(__FILE__) . '/class/utils/ue.php');
+require_once(dirname(__FILE__) . '/class/utils/helper.php');
 
-
+// initialization function for the gateway
 function ue_wc_gateway_init() {
 	class WC_Gateway_UE extends WC_Payment_Gateway {
  
