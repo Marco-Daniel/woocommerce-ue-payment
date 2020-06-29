@@ -19,13 +19,8 @@ defined( 'ABSPATH' ) or exit;
 // Make sure WooCommerce is active
 if ( !in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' )))) return;
 
-// include helper functions
-require_once(dirname(__FILE__) . '/utils/ue.php');
-require_once(dirname(__FILE__) . '/utils/helper.php');
-
 // include actual gateway
-// load after the inclusion of the helper files!
-require_once(dirname(__FILE__) . 'ue_wc_gateway_class.php');
+require_once(dirname(__FILE__) . '/class/ue_wc_gateway_class.php');
 
 // add link to settings on plugin page
 add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'ue_add_plugin_page_settings_link');
