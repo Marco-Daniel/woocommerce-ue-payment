@@ -22,8 +22,8 @@ function ue_wc_gateway_init() {
 
             // settings
             $this->title = $this->get_option( 'title' );
-	          $this->description = $this->get_option( 'description' );
-	          $this->enabled = $this->get_option( 'enabled' );
+	        $this->description = $this->get_option( 'description' );
+	        $this->enabled = $this->get_option( 'enabled' );
             $this->testmode = 'yes' === $this->get_option( 'testmode' );
             $this->use_accessclient = 'yes' === $this->get_option('use_accessclient');
 
