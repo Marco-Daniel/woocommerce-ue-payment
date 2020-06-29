@@ -5,7 +5,7 @@
  * Description: Ontvang U€ betalingen in je webwinkel
  * Author: M. D. Leguijt
  * Author URI: https://mddd.nl
- * Version: 1.2.3
+ * Version: 1.3.2
  * WC requires at least: 3.0.0
  * WC tested up to: 4.2.2
  * Copyright: (c) 2020
@@ -34,6 +34,6 @@ function ue_add_gateway_class( $gateways ) {
 }
 
 // load the gateway class we included at the top
-add_action( 'plugins_loaded', 'ue_wc_gateway_init' )
+add_action( 'plugins_loaded', 'ue_wc_gateway_init' );
 
 ?>
