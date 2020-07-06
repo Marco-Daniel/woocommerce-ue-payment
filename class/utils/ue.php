@@ -8,8 +8,8 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
 
   $url = "{$base_url}/clients/activate?code={$accesscode}";
   $headers = array(
-      'Content-Transfer-Encoding' => 'application/json',
-      'Authorization' => 'Basic '. base64_encode("{$username}:{$password}")
+    'Content-Transfer-Encoding' => 'application/json',
+    'Authorization' => 'Basic '. base64_encode("{$username}:{$password}")
   );
   
   $response = wp_remote_request( $url, array(
@@ -21,18 +21,18 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
       'blocking'    => true,
       'headers'     => $headers,
       'body'        => array(),
-      )
+    )
   );
 
   if ( is_wp_error($response) ) {
-      $error = $response->get_error_message();
-      WC_Admin_Settings::add_error("Er ging iets mis: $error");
+    $error = $response->get_error_message();
+    WC_Admin_Settings::add_error("Er ging iets mis: $error");
   } else {
-      WC_Admin_Settings::add_message("AccessClient is met succes geactiveerd.");
-      $response_body = wp_remote_retrieve_body($response);
-      $json = json_decode($response_body);
+    WC_Admin_Settings::add_message("AccessClient is met succes geactiveerd.");
+    $response_body = wp_remote_retrieve_body($response);
+    $json = json_decode($response_body);
 
-      return $json->token;
+    return $json->token;
   }
 }
 
@@ -48,25 +48,25 @@ function generate_ticket_number($base_url, $headers, $body) {
       'blocking'    => true,
       'headers'     => $headers,
       'body'        => json_encode($body),
-      )
+    )
   );
 
   if ( is_wp_error($response) ) {
       return 'Error: ' . $response->get_error_message();
   } else {
-      $response_body = wp_remote_retrieve_body($response);
-      $json = json_decode($response_body);
+    $response_body = wp_remote_retrieve_body($response);
+    $json = json_decode($response_body);
 
-      $response_code = wp_remote_retrieve_response_code($response);
+    $response_code = wp_remote_retrieve_response_code($response);
 
-      switch ($response_code) {
-          case 201:
-            // succes
-            return $json->ticketNumber;
-          default:
-            // handle error
-            break;
-      }
+    switch ($response_code) {
+        case 201:
+        // succes
+        return $json->ticketNumber;
+        default:
+        // handle error
+        break;
+    }
   }
 }
 
