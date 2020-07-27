@@ -4,17 +4,19 @@
 // This file contains http requests specific to the U€ api
 //
 
-function generate_accessclient_token( $base_url, $accesscode, $username, $password ) {
-
-  $url = "{$base_url}/clients/activate?code={$accesscode}";
-  $headers = array(
+function create_request_headers($username, $password) {
+  return array(
     'Content-Transfer-Encoding' => 'application/json',
-    'Authorization' => 'Basic '. base64_encode("{$username}:{$password}")
+    'Authorization' => 'Basic '. base64_encode($username . ':' . $password)
   );
+}
+
+function generate_accessclient_token( $base_url, $accesscode, $username, $password ) {
+  $url = "{$base_url}/clients/activate?code={$accesscode}";
+  $headers = create_request_headers($username, $password);
   
   $response = wp_remote_request( $url, array(
       'method'      => 'POST',
-      'httpversion' => '1.0',
       'timeout'     => 45,
       'redirection' => 15,
       'sslverify'   => false,
@@ -24,16 +26,56 @@ function generate_accessclient_token( $base_url, $accesscode, $username, $passwo
     )
   );
 
-  if ( is_wp_error($response) ) {
-    $error = $response->get_error_message();
-    WC_Admin_Settings::add_error("Er ging iets mis: $error");
-  } else {
-    WC_Admin_Settings::add_message("AccessClient is met succes geactiveerd.");
-    $response_body = wp_remote_retrieve_body($response);
-    $json = json_decode($response_body);
+  $response_code = wp_remote_retrieve_response_code($response);
 
-    return $json->token;
+  switch($response_code) {
+    case 200:
+      WC_Admin_Settings::add_message("AccessClient is met succes geactiveerd.");
+      $response_body = wp_remote_retrieve_body($response);
+      $json = json_decode($response_body);
+
+      return $json->token;
+    case 401:
+      WC_Admin_Settings::add_error("Error: Verkeerde gebruikersnaam en/of wachtwoord.");
+      return null;
+    case 404:
+      WC_Admin_Settings::add_error("Error: Uw aanvraag mist informatie, klopt uw activatiecode wel?");
+      return null;
+    default:
+      WC_Admin_Settings::add_error("Error: Er is een onverwachte fout opgetreden.");
+      return null;
   }
+}
+
+function test_user_credentials( $base_url, $username, $password ) {
+  $url = "{$base_url}/auth/session";
+  $headers = create_request_headers($username, $password);
+  
+  $response = wp_remote_request( $url, array(
+      'method'      => 'POST',
+      'timeout'     => 45,
+      'redirection' => 15,
+      'sslverify'   => false,
+      'blocking'    => true,
+      'headers'     => $headers,
+      'body'        => array(),
+    )
+  );
+
+  $response_code = wp_remote_retrieve_response_code($response);
+
+  switch ($response_code) {
+    case 200:
+      WC_Admin_Settings::add_message("Uw inloggegevens zijn succesvol geverifieerd.");
+      break;
+    case 401:
+      WC_Admin_Settings::add_error("Uw inloggegevens zijn niet juist.");
+      break;
+    default:
+      WC_Admin_Settings::add_error("Er is een onbekende fout opgetreden.");
+      break;
+  }
+
 }
 
 function generate_ticket_number($base_url, $headers, $body) {
@@ -41,7 +83,6 @@ function generate_ticket_number($base_url, $headers, $body) {
 
   $response = wp_remote_request( $url, array(
       'method'      => 'POST',
-      'httpversion' => '1.0',
       'timeout'     => 45,
       'redirection' => 15,
       'sslverify'   => false,
@@ -74,7 +115,6 @@ function process_ticket($base_url, $headers, $ticketNumber, $orderId) {
   $url = "$base_url/tickets/$ticketNumber/process?orderId=$orderId";
   $response = wp_remote_request( $url, array(
       'method'      => 'POST',
-      'httpversion' => '1.0',
       'timeout'     => 45,
       'redirection' => 15,
       'sslverify'   => false,

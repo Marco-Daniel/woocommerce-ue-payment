@@ -24,7 +24,7 @@ function ue_wc_gateway_init() {
 			$this->description = $this->get_option( 'description' );
 			$this->enabled = $this->get_option( 'enabled' );
 			$this->testmode = 'yes' === $this->get_option( 'testmode' );
-			$this->use_accessclient = 'yes' === $this->get_option('use_accessclient');
+			$this->use_accessclient = 'yes' === $this->get_option( 'use_accessclient' );
 
 			$this->root_url = $this->testmode ? 'https://demo.cyclos.org' : 'https://mijn.circuitnederland.nl';
 			$this->api_endpoint = $this->root_url . '/api';
@@ -32,12 +32,18 @@ function ue_wc_gateway_init() {
 			$this->password = $this->testmode ? "1234" : $this->get_option( 'password' );
 			$this->accessclient = $this->use_accessclient ? $this->get_option( 'accessclient' ) : NULL;
 
-			// if accessclient is retrieved.
-			if( !empty($_POST['accessClientCode'])) {
-				$accesscode = $_POST['accessClientCode'];
-				$token = generate_accessclient_token($this->api_endpoint, $accesscode, $this->username, $this->password);
-				$this->update_option('accessclient', $token);
-				$this->update_option('use_accessclient', 'yes');
+			// test user credentials if button is clicked
+			if(array_key_exists('generateAccesclientButton',$_POST)) {
+				if( !empty($_POST['accessClientCode'])) {
+					$accesscode = $_POST['accessClientCode'];
+					$token = generate_accessclient_token($this->api_endpoint, $accesscode, $this->username, $this->password);
+					$this->update_option('accessclient', $token);
+					$this->update_option('use_accessclient', 'yes');
+				}
+			}
+
+			if(array_key_exists('testUserCredentialsButton', $_POST)) {
+				test_user_credentials($this->api_endpoint, $this->username, $this->password);
 			}
 			
 			// This action hook saves the settings
@@ -59,7 +65,7 @@ function ue_wc_gateway_init() {
 				return array(
 					'Content-Transfer-Encoding' 	=> 'application/json',
 					'Content-type'								=> 'application/json;charset=utf-8',
-					'Authorization' 							=> 'Basic '. base64_encode("{$this->username}:{$this->password}")
+					'Authorization' 							=> 'Basic '. base64_encode($this->username . ':' . $this->password)
 				);
 			}
 		}
@@ -91,8 +97,8 @@ function ue_wc_gateway_init() {
 							<input type="text" id="accessClientCode" name="accessClientCode" placeholder="AccessClient Activatie Code">
 							<button type="submit" class="<?php echo esc_attr( $data['class'] ); ?>" 
 								type="submit" 
-								name="<?php echo esc_attr( $field ); ?>" 
-								id="<?php echo esc_attr( $field ); ?>" 
+								name="generateAccesclientButton" 
+								id="generateAccesclientButton" 
 							>
 								<?php echo wp_kses_post( $data['button_title'] ); ?>
 							</button>
@@ -104,6 +110,45 @@ function ue_wc_gateway_init() {
 								<br> <u>Als u deze instellingen niet kan vinden in uw U€-account, dan moeten deze instellingen nog geactiveerd worden voor uw.
 								<br> Neem daarvoor contact op met de <a href="https://www.utrechtse-euro.nl/" rel="noopener noreferrer" target="_blank">Utrechtse Euro</a>, zij kunnen u verder helpen.</u>
 							</p>
+						</form>
+					</fieldset>
+				</td>
+			</tr>
+			<?php
+			return ob_get_clean();
+		}
+
+		public function generate_test_credentials_button_html( $key, $data ) {
+			$field = $this->plugin_id . $this->id . '_' . $key;
+			$defaults = array(
+				'class'         => 'button-secondary',
+				'desc_tip'      => false,
+				'description'   => '',
+				'title'         => 'Test inloggegevens',
+				'button_title'  => 'Test inloggegevens'
+			);
+
+			$data = wp_parse_args( $data, $defaults );
+
+			ob_start();
+			?>
+			<tr valign="top">
+				<th scope="row" class="titledesc">
+					<label for="<?php echo esc_attr( $field ); ?>"><?php echo wp_kses_post( $data['title'] ); ?></label>
+					<?php echo $this->get_tooltip_html( $data ); ?>
+				</th>
+				<td class="forminp">
+					<fieldset>
+						<legend class="screen-reader-text"><span><?php echo wp_kses_post( $data['title'] ); ?></span></legend>
+						<form method="post" name="testUserCredentialsForm" id="testUserCredentialsForm" action="">
+							<input type="hidden" id="testUserCredentials" name="testUserCredentials" value="test">
+							<button type="submit" class="<?php echo esc_attr( $data['class'] ); ?>" 
+								type="submit" 
+								name="testUserCredentialsButton" 
+								id="testUserCredentialsButton" 
+							>
+								<?php echo wp_kses_post( $data['button_title'] ); ?>
+							</button>
 						</form>
 					</fieldset>
 				</td>
@@ -190,6 +235,10 @@ function ue_wc_gateway_init() {
 					'title'         => 'U€ wachtwoord',
 					'type'          => 'password',
 				),
+				'testUserCredentials' => array(
+					'type'          => 'test_credentials_button',
+					'desc_tip'      => 'test uw inloggegevens'
+				),
 				'use_accessclient' => array(
 					'title'         => 'AccessClient',
 					'label'         => 'Activeer AccessClient Mode (deze optie wordt geadviseerd, bij het genereren van een token wordt deze optie automatisch geactiveerd.)',
@@ -240,36 +289,37 @@ function ue_wc_gateway_init() {
 					
 		//Back-end options validation and processing.	
 		public function process_admin_options(){
-			if ($_POST['woocommerce_ue_use_accessclient'] == true) {
-				if ($_POST['woocommerce_ue_testmode'] == true) {
-					WC_Admin_Settings::add_error( 'Error: accessClient niet beschikbaar in testmode.' );
-					return false;
-				} else {
-					if (empty($_POST['woocommerce_ue_accessclient'])){
-						WC_Admin_Settings::add_error( 'Error: Uw accessClient is niet geldig.' );
-						return false;
-					} else {
-						parent::process_admin_options();
-						return true;
-					}
-				}
-			} else {
-				if ($_POST['woocommerce_ue_testmode'] == true) {
-					parent::process_admin_options();
-					return true;
-				} else {
-					if (empty($_POST['woocommerce_ue_username'])){
-						WC_Admin_Settings::add_error( 'Error: Uw gebruikersnaam is niet geldig.' );
-						return false;
-					} else if (empty($_POST['woocommerce_ue_password'])){
-						WC_Admin_Settings::add_error( 'Error: Uw wachtwoord is niet geldig.' );
-						return false;
-					} else {
-						parent::process_admin_options();
-						return true;
-					}
-				}
-			}
+			parent::process_admin_options();
+			// if ($_POST['woocommerce_ue_use_accessclient'] == true) {
+			// 	if ($_POST['woocommerce_ue_testmode'] == true) {
+			// 		WC_Admin_Settings::add_error( 'Error: accessClient niet beschikbaar in testmode.' );
+			// 		return false;
+			// 	} else {
+			// 		if (empty($_POST['woocommerce_ue_accessclient'])){
+			// 			WC_Admin_Settings::add_error( 'Error: Uw accessClient is leeg.' );
+			// 			return false;
+			// 		} else {
+			// 			parent::process_admin_options();
+			// 			return true;
+			// 		}
+			// 	}
+			// } else {
+			// 	if ($_POST['woocommerce_ue_testmode'] == true) {
+			// 		parent::process_admin_options();
+			// 		return true;
+			// 	} else {
+			// 		if (empty($_POST['woocommerce_ue_username'])){
+			// 			WC_Admin_Settings::add_error( 'Error: Uw gebruikersnaam is niet ingevuld.' );
+			// 			return false;
+			// 		} else if (empty($_POST['woocommerce_ue_password'])){
+			// 			WC_Admin_Settings::add_error( 'Error: Uw wachtwoord is niet ingevuld.' );
+			// 			return false;
+			// 		} else {
+			// 			parent::process_admin_options();
+			// 			return true;
+			// 		}
+			// 	}
+			// }
 		}
 	
 		// We're processing the payments here, everything about it is in Step 5
