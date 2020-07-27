@@ -149,6 +149,9 @@ function ue_wc_gateway_init() {
 							>
 								<?php echo wp_kses_post( $data['button_title'] ); ?>
 							</button>
+							<p class="description">
+								Vergeet <em>niet</em> om eerst uw gebruikersnaam en wachtwoord op te slaan middels de knop onder aan deze pagina.
+							</p>
 						</form>
 					</fieldset>
 				</td>
