@@ -293,36 +293,6 @@ function ue_wc_gateway_init() {
 		//Back-end options validation and processing.	
 		public function process_admin_options(){
 			parent::process_admin_options();
-			// if ($_POST['woocommerce_ue_use_accessclient'] == true) {
-			// 	if ($_POST['woocommerce_ue_testmode'] == true) {
-			// 		WC_Admin_Settings::add_error( 'Error: accessClient niet beschikbaar in testmode.' );
-			// 		return false;
-			// 	} else {
-			// 		if (empty($_POST['woocommerce_ue_accessclient'])){
-			// 			WC_Admin_Settings::add_error( 'Error: Uw accessClient is leeg.' );
-			// 			return false;
-			// 		} else {
-			// 			parent::process_admin_options();
-			// 			return true;
-			// 		}
-			// 	}
-			// } else {
-			// 	if ($_POST['woocommerce_ue_testmode'] == true) {
-			// 		parent::process_admin_options();
-			// 		return true;
-			// 	} else {
-			// 		if (empty($_POST['woocommerce_ue_username'])){
-			// 			WC_Admin_Settings::add_error( 'Error: Uw gebruikersnaam is niet ingevuld.' );
-			// 			return false;
-			// 		} else if (empty($_POST['woocommerce_ue_password'])){
-			// 			WC_Admin_Settings::add_error( 'Error: Uw wachtwoord is niet ingevuld.' );
-			// 			return false;
-			// 		} else {
-			// 			parent::process_admin_options();
-			// 			return true;
-			// 		}
-			// 	}
-			// }
 		}
 	
 		// We're processing the payments here, everything about it is in Step 5
@@ -336,7 +306,7 @@ function ue_wc_gateway_init() {
 
 			//urls
 			$successUrl = $order->get_checkout_order_received_url();
-			$successWebhookUrl = get_home_url(NULL, "/wc-api/ue_payment_completed?orderId=$order_id");
+			$successWebhookUrl = get_site_url(NULL, "/wc-api/ue_payment_completed?orderId=$order_id");
 			$cancelUrl = $order->get_cancel_order_url();
 
 			//create request body
