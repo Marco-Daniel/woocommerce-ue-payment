@@ -304,13 +304,15 @@ function ue_wc_gateway_init() {
 			global $woocommerce;
 
 			$order = wc_get_order( $order_id );
+			$order_key = $order->get_order_key();
 			$amount = $order->get_total();
 			$shop_title = get_bloginfo('name');
 			$description = "Betaling van $amount aan $shop_title";
 
 			//urls
-			$successUrl = $order->get_checkout_order_received_url();
-			$successWebhookUrl = get_site_url(NULL, "/wc-api/ue_payment_completed?orderId=$order_id");
+			$url_data = "/wc-api/ue_payment_completed?order_id=$order_id&key=$order_key";
+			$successUrl = get_home_url(NULL, $url_data);
+			$successWebhookUrl = get_site_url(NULL, $url_data);
 			$cancelUrl = $order->get_cancel_order_url();
 
 			//create request body
