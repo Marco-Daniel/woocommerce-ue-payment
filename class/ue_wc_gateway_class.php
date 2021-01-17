@@ -10,7 +10,7 @@ function ue_wc_gateway_init() {
 		// Setup basics
 		public function __construct() {
 			$this->id = "ue";
-			$this->icon = "";
+			$this->icon = $this->getIcon();
 			$this->has_fields = false;
 			$this->method_title = "Utrechtse Euro";
 			$this->method_description = "Accepteer betalingen met de Utrechtse Euro";
@@ -68,6 +68,10 @@ function ue_wc_gateway_init() {
 					'Authorization' 							=> 'Basic '. base64_encode($this->username . ':' . $this->password)
 				);
 			}
+		}
+
+		private function getIcon() {
+			return plugins_url( 'class/assets/logo_ue.png', dirname(__FILE__) );
 		}
 
 		//Function to generate HTML for accessClient generator in the WP-admin UI
